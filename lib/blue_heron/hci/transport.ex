@@ -6,48 +6,20 @@ defmodule BlueHeron.HCI.Transport do
 
   alias BlueHeron.HCI.Command.{
     ControllerAndBaseband,
-    InformationalParameters,
-    LEController
+    InformationalParameters
   }
-
-  @default_name "BlueHeron"
 
   @default_max_error_count 2
   @default_init_commands [
     %ControllerAndBaseband.Reset{},
     %InformationalParameters.ReadLocalVersion{},
     %InformationalParameters.ReadBRADDR{},
-    %ControllerAndBaseband.ReadLocalName{},
-    %InformationalParameters.ReadLocalSupportedCommands{},
-    # %InformationalParameters.ReadBdAddr{},
-    # %InformationalParameters.ReadBufferSize{},
-    # %InformationalParameters.ReadLocalSupportedFeatures{},
+    # %InformationalParameters.ReadLocalSupportedCommands{},
     %ControllerAndBaseband.SetEventMask{enhanced_flush_complete: false},
-    %ControllerAndBaseband.WriteSimplePairingMode{enabled: true},
-    %ControllerAndBaseband.WritePageTimeout{timeout: 0x60},
-    # %LinkPolicy.WriteDefaultLinkPolicySettings{settings: 0x00},
     %ControllerAndBaseband.WriteClassOfDevice{class: 0x0C027A},
-    %ControllerAndBaseband.WriteLocalName{name: @default_name},
-    # %ControllerAndBaseband.WriteExtendedInquiryResponse(
-    #   false,
-    #   <<0x1A, 0x9, 0x42, 0x54, 0x73, 0x74, 0x61, 0x63, 0x6B, 0x20, 0x45, 0x20, 0x38, 0x3A, 0x34,
-    #     0x45, 0x3A, 0x30, 0x36, 0x3A, 0x38, 0x31, 0x3A, 0x41, 0x34, 0x3A, 0x35, 0x30, 0x20>>
-    # ),
-    %ControllerAndBaseband.WriteInquiryMode{inquiry_mode: 0x0},
-    %ControllerAndBaseband.WriteSecureConnectionsHostSupport{enabled: false},
-    %ControllerAndBaseband.WriteScanEnable{scan_enable: 0x01},
     %ControllerAndBaseband.WriteSynchronousFlowControlEnable{enabled: true},
     %ControllerAndBaseband.WriteDefaultErroneousDataReporting{enabled: true},
-    %LEController.ReadBufferSizeV1{},
-    %ControllerAndBaseband.WriteLEHostSupport{le_supported_host_enabled: true},
-    %LEController.ReadWhiteListSize{},
-    %LEController.SetScanParameters{
-      le_scan_type: 0x01,
-      le_scan_interval: 0x0030,
-      le_scan_window: 0x0030
-    }
-    # No random address, command will respond with error code
-    # %LEController.SetScanEnable{le_scan_enable: false}
+    %ControllerAndBaseband.WriteLEHostSupport{le_supported_host_enabled: true}
   ]
 
   defstruct errors: 0,
