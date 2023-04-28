@@ -199,7 +199,7 @@ defmodule BlueHeron.GATT.Server do
         end
 
       %ReadRequest{handle: handle} ->
-        if require_permission?(state, request, :read_auth) do
+        if require_permission?(state, request.handle, :read_auth) do
           {state,
            %ErrorResponse{
              handle: request.handle,
@@ -215,7 +215,7 @@ defmodule BlueHeron.GATT.Server do
         end
 
       %ReadBlobRequest{} ->
-        if require_permission?(state, request, :read_auth) do
+        if require_permission?(state, request.handle, :read_auth) do
           {state,
            %ErrorResponse{
              handle: request.handle,
@@ -227,7 +227,7 @@ defmodule BlueHeron.GATT.Server do
         end
 
       %WriteRequest{handle: handle} ->
-        if require_permission?(state, request, :write_auth) do
+        if require_permission?(state, request.handle, :write_auth) do
           {state,
            %ErrorResponse{
              handle: request.handle,
@@ -243,7 +243,7 @@ defmodule BlueHeron.GATT.Server do
         end
 
       %PrepareWriteRequest{} ->
-        if require_permission?(state, request, :write_auth) do
+        if require_permission?(state, request.handle, :write_auth) do
           {state,
            %ErrorResponse{
              handle: request.handle,
@@ -255,7 +255,7 @@ defmodule BlueHeron.GATT.Server do
         end
 
       %ExecuteWriteRequest{} ->
-        if require_permission?(state, request, :write_auth) do
+        if require_permission?(state, request.handle, :write_auth) do
           {state,
            %ErrorResponse{
              handle: request.handle,
@@ -355,12 +355,12 @@ defmodule BlueHeron.GATT.Server do
   end
 
   # Disable permission checking when SMP is not active
-  defp require_permission?(%{smp_server: nil}, _request, _permission) do
+  defp require_permission?(%{smp_server: nil}, _handle, _permission) do
     false
   end
 
-  defp require_permission?(state, request, permission) do
-    p_list = find_characteristic_permissions(state.profile, request.handle)
+  defp require_permission?(state, handle, permission) do
+    p_list = find_characteristic_permissions(state.profile, handle)
 
     if p_list == nil do
       false
@@ -493,15 +493,26 @@ defmodule BlueHeron.GATT.Server do
 
       [characteristic] ->
         # TODO: Handle exceptions and long values
-        value = state.mod.read(characteristic.id)
 
-        attr = %ReadByTypeResponse.AttributeData{
-          handle: characteristic.handle,
-          uuid: characteristic.type,
-          value: value
-        }
+        # Make sure the vaue can be read
+        if require_permission?(state, characteristic.handle, :read_auth) do
+          {state,
+           %ErrorResponse{
+             handle: request.handle,
+             request_opcode: request.opcode,
+             error: :insufficient_authentication
+           }}
+        else
+          value = state.mod.read(characteristic.id)
 
-        {state, %ReadByTypeResponse{attribute_data: [attr]}}
+          attr = %ReadByTypeResponse.AttributeData{
+            handle: characteristic.handle,
+            uuid: characteristic.type,
+            value: value
+          }
+
+          {state, %ReadByTypeResponse{attribute_data: [attr]}}
+        end
 
       characteristics_in_range ->
         attribute_data =
