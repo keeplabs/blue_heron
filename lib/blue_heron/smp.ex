@@ -120,7 +120,9 @@ defmodule BlueHeron.SMP do
 
     k = <<passkey::integer-size(128)>>
     r = :crypto.strong_rand_bytes(16)
-    response = <<0x02, 0x01, 0x00, 0b00000101, 16, 0x0F, 0x0F>>
+
+    # Do not request distribute IRK or Signing Keys only EDIV, LTK
+    response = <<0x02, 0x01, 0x00, 0b00000101, 16, 0x01, 0x01>>
 
     # Set up all pairing related information
     pairing = %{
@@ -254,17 +256,19 @@ defmodule BlueHeron.SMP do
     frame = acl(event.connection_handle, <<0x07, ediv::little-16>> <> reverse(rand))
     BlueHeron.acl(state.ctx, frame)
 
+    # Note: We are only distributing LTK, EDIV and RAND, see flags set in pairing response
+
     # generate and send IRK using "Identity Information" ACL message
-    frame = acl(event.connection_handle, <<0x08>> <> reverse(irk))
-    BlueHeron.acl(state.ctx, frame)
+    # frame = acl(event.connection_handle, <<0x08>> <> reverse(irk))
+    # BlueHeron.acl(state.ctx, frame)
 
     # generate and send BD_ADDRESS using "Identity Address Information" ACL message
-    frame = acl(event.connection_handle, <<0x09, 0>> <> reverse(state.bd_address.binary()))
-    BlueHeron.acl(state.ctx, frame)
+    # frame = acl(event.connection_handle, <<0x09, 0>> <> reverse(state.bd_address.binary()))
+    # BlueHeron.acl(state.ctx, frame)
 
     # generate and send CSRK using "Signing Information" ACL message
-    frame = acl(event.connection_handle, <<0x0A>> <> reverse(csrk))
-    BlueHeron.acl(state.ctx, frame)
+    # frame = acl(event.connection_handle, <<0x0A>> <> reverse(csrk))
+    # BlueHeron.acl(state.ctx, frame)
 
     {:reply, nil, %{state | authenticated: true}}
   end
