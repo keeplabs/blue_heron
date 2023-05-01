@@ -1,0 +1,25 @@
+name: "Install Dependencies"
+description: "..."
+inputs:
+  elixir_version:
+    description: "Elixir version (excluding the v prefix)"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: install-elixir
+      shell: bash
+      run: |
+        wget -q https://repo.hex.pm/builds/elixir/v${{ inputs.elixir_version }}.zip
+        unzip -q -d /usr/local/elixir v${{ inputs.elixir_version }}.zip
+        echo "/usr/local/elixir/bin" >> $GITHUB_PATH
+        echo "$GITHUB_PATH"
+
+    - name: install-hex
+      shell: bash
+      run: mix local.hex --force
+
+    - name: install-rebar
+      shell: bash
+      run: mix local.rebar --force

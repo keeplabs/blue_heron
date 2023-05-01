@@ -1,0 +1,80 @@
+name: Build
+
+on:
+  push:
+    #
+
+jobs:
+  setup:
+    outputs:
+      upload_url: ${{ steps.create-release.outputs.upload_url }}
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+  check_format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [setup]
+    container:
+      image: nervesproject/nerves_system_br:1.20.6
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup
+        id: setup
+        uses: ./.github/actions/setup
+
+      - name: Install Dependencies
+        uses: ./.github/actions/install-dependencies
+        with:
+          elixir_version: ${{ steps.setup.outputs.elixir_version }}
+
+      - name: Check Format
+        id: build
+        shell: bash
+        run: |
+          mix deps.get --silent
+          mix format --check-formatted
+
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [setup]
+    strategy:
+      fail-fast: false
+    container:
+      image: nervesproject/nerves_system_br:1.20.6
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup
+        id: setup
+        uses: ./.github/actions/setup
+
+      - name: Install Dependencies
+        uses: ./.github/actions/install-dependencies
+        with:
+          elixir_version: ${{ steps.setup.outputs.elixir_version }}
+
+      - name: Compile
+        shell: bash
+        run: |
+          mix deps.get --silent
+          mix compile
+
+      - name: Docs
+        shell: bash
+        run: |
+          mix deps.get --silent
+          mix docs
