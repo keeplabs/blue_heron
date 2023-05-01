@@ -1,0 +1,17 @@
+name: "Setup Build Environment"
+description: "Minimal setup for each build job"
+
+outputs:
+  elixir_version:
+    description: "Elixir Version"
+    value: ${{ steps.setup.outputs.elixir_version }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: setup
+      id: setup
+      shell: bash
+      run: |
+        echo "elixir_version=$(cat .tool-versions | grep '^elixir ' | \
+              awk '{print $2}')" >> $GITHUB_OUTPUT
