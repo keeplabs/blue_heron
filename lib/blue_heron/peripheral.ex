@@ -71,6 +71,10 @@ defmodule BlueHeron.Peripheral do
     :gen_statem.call(pid, :disconnect)
   end
 
+  def is_authenticated?(pid) do
+    :gen_statem.call(pid, :is_authenticated?)
+  end
+
   @doc """
   Send a HandleValueNotification packet
 
@@ -164,6 +168,11 @@ defmodule BlueHeron.Peripheral do
     :keep_state_and_data
   end
 
+  def ready({:call, from}, :is_authenticated?, data) do
+    # Not connected
+    {:keep_state_and_data, {:reply, from, false}}
+  end
+
   def advertising({:call, from}, :stop_advertising, data) do
     command = SetAdvertisingEnable.new(advertising_enable: false)
 
@@ -198,10 +207,26 @@ defmodule BlueHeron.Peripheral do
     {:keep_state_and_data, {:reply, from, {:error, :not_connected}}}
   end
 
+  def advertising({:call, from}, :is_authenticated?, data) do
+    # Not connected
+    {:keep_state_and_data, {:reply, from, false}}
+  end
+
   def connected({:call, from}, :disconnect, data) do
     command = Disconnect.new(connection_handle: data.connection.handle)
     {:ok, %CommandStatus{status: 0x00}} = BlueHeron.hci_command(data.ctx, command)
     {:keep_state_and_data, {:reply, from, :ok}}
+  end
+
+  def connected({:call, from}, :is_authenticated?, %{smp_server: smp} = data)
+      when is_pid(smp) do
+    auth = SMP.is_authenticated?(data.smp_server)
+    {:keep_state_and_data, {:reply, from, auth}}
+  end
+
+  def connected({:call, from}, :is_authenticated?, data) do
+    # We do not have a SMP server PID
+    {:keep_state_and_data, {:reply, from, false}}
   end
 
   def connected(
