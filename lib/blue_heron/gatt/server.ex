@@ -255,16 +255,8 @@ defmodule BlueHeron.GATT.Server do
         end
 
       %ExecuteWriteRequest{} ->
-        if require_permission?(state, request.handle, :write_auth) do
-          {state,
-           %ErrorResponse{
-             handle: request.handle,
-             request_opcode: request.opcode,
-             error: :insufficient_authentication
-           }}
-        else
-          write_long_characteristic_value(state, request)
-        end
+        # No auth required, prepare will catch it
+        write_long_characteristic_value(state, request)
 
       requ ->
         # Unhandled requests should be handled as errors, they stall all communication
