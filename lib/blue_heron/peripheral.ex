@@ -268,7 +268,7 @@ defmodule BlueHeron.Peripheral do
         {:HCI_ACL_DATA_PACKET, %ACL{handle: handle, data: %L2Cap{cid: 0x0004, data: request}}},
         data
       ) do
-    Logger.info("Peripheral service discovery request: #{handle}=> #{inspect(request)}")
+    # Logger.info("Peripheral service discovery request: #{handle}=> #{inspect(request)}")
     {gatt_server, response} = GATT.Server.handle(data.gatt_server, request)
 
     if response do
